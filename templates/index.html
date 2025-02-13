@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Productos</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <h1>Gestión de Productos</h1>
+
+    <!-- Formulario para agregar productos -->
+    <h2>Agregar Producto</h2>
+    <form id="addForm">
+        <label for="name">Nombre:</label>
+        <input type="text" id="name" required><br>
+
+        <label for="description">Descripción:</label>
+        <textarea id="description"></textarea><br>
+
+        <button type="submit">Crear</button>
+    </form>
+
+    <!-- Formulario para editar productos -->
+    <h2>Editar Producto</h2>
+    <form id="editForm" style="display: none;">
+        <label for="editId">ID:</label>
+        <input type="text" id="editId" disabled><br>
+
+        <label for="editName">Nombre:</label>
+        <input type="text" id="editName" required><br>
+
+        <label for="editDescription">Descripción:</label>
+        <textarea id="editDescription"></textarea><br>
+
+        <button type="submit">Actualizar</button>
+    </form>
+
+    <script>
+        async function loadProduct(id) {
+            const response = await fetch(`/products/${id}`);
+            if (response.ok) {
+                const product = await response.json();
+                document.getElementById('editId').value = product.id;
+                document.getElementById('editName').value = product.name;
+                document.getElementById('editDescription').value = product.description;
+
+                document.getElementById('editForm').style.display = 'block';
+                document.getElementById('addForm').style.display = 'none';
+            } else {
+                alert('Producto no encontrado');
+            }
+        }
+
+        document.getElementById('addForm').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const name = document.getElementById('name').value;
+            const description = document.getElementById('description').value;
+
+            const response = await fetch(`/products`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, description })
+            });
+
+            if (response.ok) {
+                alert('Producto agregado');
+                window.location.reload();
+            } else {
+                alert('Error al agregar producto');
+            }
+        });
+
+        document.getElementById('editForm').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const id = document.getElementById('editId').value;
+            const name = document.getElementById('editName').value;
+            const description = document.getElementById('editDescription').value;
+
+            const response = await fetch(`/products/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, description })
+            });
+
+            if (response.ok) {
+                alert('Producto actualizado');
+                window.location.href = '/';
+            } else {
+                alert('Error al actualizar el producto');
+            }
+        });
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const productId = urlParams.get('id');
+        if (productId) {
+            loadProduct(productId);
+        }
+    </script>
+</body>
+</html>
